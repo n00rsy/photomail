@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'email.dart';
 import 'package:flutter/foundation.dart';
-
+import 'parser.dart';
 
 void main() {
   runApp(MyApp());
@@ -35,25 +35,28 @@ class _MyHomePageState extends State<MyHomePage> {
   File _image;
   final picker = ImagePicker();
 
-  void getImage() {
+  void getImage () async  {
     debugPrint('movieTitle');
     launchMailto("ridhwaan.any@gmail.com", "Hi this is an email. I am happy");
 
+    print("getting image");
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
 
-    //print("getting image");
-    //final pickedFile = await picker.getImage(source: ImageSource.camera);
+    setState(() {
+     if (pickedFile != null) {
+       _image = File(pickedFile.path);
 
-    //setState(() {
-    //  if (pickedFile != null) {
-    //    _image = File(pickedFile.path);
-    //    // do stuff with image here
+       // send POST request to google
 
-    //    // send emailk
-    //    launchMailto("ridhwaan.any@gmail.com", "Hi this is an email. I am happy");
-    //  } else {
-    //    print('No image selected.');
-    //  }
-    //});
+
+       parseString("test string");
+
+       // send email
+       launchMailto("ridhwaan.any@gmail.com", "Hi this is an email. I am happy");
+     } else {
+       print('No image selected.');
+     }
+    });
   }
 
   @override
