@@ -1,5 +1,5 @@
 parseString(String s) {
-
+  if(s == null) return null;
   s = s.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
   String to = s.substring(s.indexOf("To:"), s.indexOf("Body:"));
   String body = s.substring(s.indexOf("body"));

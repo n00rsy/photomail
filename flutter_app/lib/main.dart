@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'email.dart';
 import 'package:flutter/foundation.dart';
 import 'parser.dart';
+import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:async/async.dart';
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -24,6 +30,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
+upload(File imageFile) async {
+  // open a bytestream
+  var stream = new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
+  // get file length
+  var length = await imageFile.length();
+
+  // string to uri
+  var uri = Uri.parse("http://36029840fc10.ngrok.io/");
+
+  // create multipart request
+  var request = new http.MultipartRequest("POST", uri);
+
+  // multipart that takes file
+  var multipartFile = new http.MultipartFile('file', stream, length,
+      filename: basename(imageFile.path));
+
+  // add file to multipart
+  request.files.add(multipartFile);
+
+  // send
+  var response = await request.send();
+  print(response.statusCode);
+
+  // listen for response
+  response.stream.transform(utf8.decoder).listen((value) {
+    print(value);
+    Map<String, dynamic> res = jsonDecode(value);
+    var emailData = parseString(res['response']);
+    launchMailto(emailData[0], emailData[1]);
+  });
+}
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
@@ -34,26 +72,29 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   File _image;
   final picker = ImagePicker();
+  
+  void sendToServer(FormData formData) async {
+    print("sending post request");
+
+    var email = parseString("test string");
+
+    // send email
+    if(email != null)
+      launchMailto(email[0], email[1]);
+  }
 
   void getImage () async  {
     debugPrint('movieTitle');
-    launchMailto("ridhwaan.any@gmail.com", "Hi this is an email. I am happy");
-
-    print("getting image");
     final pickedFile = await picker.getImage(source: ImageSource.camera);
 
-    setState(() {
+    setState(() async{
      if (pickedFile != null) {
        _image = File(pickedFile.path);
-
        // send POST request to google
+       upload(_image);
 
-
-       parseString("test string");
-
-       // send email
-       launchMailto("ridhwaan.any@gmail.com", "Hi this is an email. I am happy");
-     } else {
+     }
+     else {
        print('No image selected.');
      }
     });
